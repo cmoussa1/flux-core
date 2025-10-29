@@ -417,18 +417,12 @@ test_inactive() {
 	test $(wc -l <test_jobs.err) -eq 0 \
 		-a $(grep -v INACTIVE test_jobs.out | wc -l) -eq 0
 }
-# Return true if all specified jobs are unknown to job-list
-test_unknown() {
-	run_timeout 10 \
-	    flux jobs -n -o {state} $@ >test_jobs.out 2>test_jobs.err && \
-	test $(wc -l <test_jobs.out) -eq 0
-}
 
 test_expect_success 'job-manager: wait for valid jobs to appear inactive' '
 	while ! test_inactive $(cat valid_ids); do echo retry; sleep 0.1; done
 '
 test_expect_success 'job-manager: flux jobs does not list invalid jobs' '
-	test_unknown $(cat invalid_ids)
+	test_must_fail flux jobs $(cat invalid_ids)
 '
 
 test_expect_success 'job-manager: plugin can manage dependencies' '

@@ -558,6 +558,20 @@ def main():
         formatter.set_sort_keys(args.sort)
 
     (jobs, truncated) = fetch_jobs(args, formatter.fields)
+    if args.jobids and len(jobs) == 0:
+        # Fetch stats if we don't already have them
+        if not (args.stats or args.stats_only):
+            try:
+                stats = JobStats(flux.Flux(), queue=args.queue).update_sync()
+            except ValueError as err:
+                LOGGER.error("error retrieving job stats: %s", str(err))
+                sys.exit(1)
+
+        # If there are purged jobs, they may have existed but were cleaned up
+        # so this is not an error condition
+        if stats.inactive_purged == 0:
+            LOGGER.error("No jobs found for the specified job IDs")
+            sys.exit(1)
     sformatter = JobInfoFormat(formatter.filter(jobs, no_header=args.no_header))
 
     if not args.no_header:

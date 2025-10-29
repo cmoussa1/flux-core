@@ -500,9 +500,8 @@ test_expect_success 'flux jobs can take specific IDs in any form' '
 '
 
 test_expect_success 'flux-jobs error on unknown IDs' '
-	flux jobs --no-header 0 1 2 2> ids.err &&
-	count=`grep -i unknown ids.err | wc -l` &&
-	test $count -eq 3
+	test_must_fail flux jobs --no-header 0 1 2 2> ids.err &&
+	grep "No jobs found for the specified job IDs" ids.err
 '
 
 test_expect_success 'flux-jobs errors with illegal IDs' '
@@ -1438,9 +1437,9 @@ test_expect_success 'flux-jobs: --json works for inactive job' '
 '
 
 #  Asking for a specific nonexisting jobid returns no output
-test_expect_success 'flux-jobs: --json with missing jobid returns nothing' '
-	flux jobs --json 123 >missing.json &&
-	test_must_be_empty missing.json
+test_expect_success 'flux-jobs: --json with missing jobid fails' '
+	test_must_fail flux jobs --json 123 2> missing.json &&
+	grep "No jobs found for the specified job IDs" missing.json
 '
 
 #
